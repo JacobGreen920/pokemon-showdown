@@ -18249,8 +18249,9 @@ export const Learnsets: import('../sim/dex-species').LearnsetDataTable = {
 			bodyslam: ["8M"],
 			brickbreak: ["8M"],
 			calmmind: ["8M"],
-			chargebeam: ["6M"], //new move
+			chargebeam: ["8M"], //new move
 			charm: ["8M"],
+			chillingwater: ["8M"], //new move
 			confuseray: ["8E"],
 			confusion: ["8L12", "8S0"],
 			copycat: ["8L1", "8S0"],
@@ -18263,17 +18264,18 @@ export const Learnsets: import('../sim/dex-species').LearnsetDataTable = {
 			expandingforce: ["8T"],
 			facade: ["8M"],
 			fakeout: ["8E"],
-			firstimpression: ["6M"], //new move
+			firstimpression: ["8M"], //new move
 			fling: ["8M"],
 			focusblast: ["8M"],
 			foulplay: ["8M"],
 			freezedry: ["8L44"],
+			frostbreath: ["8M"], //new move
 			futuresight: ["8M"],
 			gigaimpact: ["8M"],
 			grassknot: ["8M"],
 			guardswap: ["8M"],
 			hail: ["8M"],
-			haze: ["6M"], //new move
+			haze: ["8M"], //new move
 			helpinghand: ["8M"],
 			hyperbeam: ["8M"],
 			hypnosis: ["8L32"],
@@ -18282,10 +18284,11 @@ export const Learnsets: import('../sim/dex-species').LearnsetDataTable = {
 			iceshard: ["8L1", "8S0"],
 			iciclespear: ["8M"],
 			icywind: ["8M", "8L20"],
-			infestation: ["6M"], //new move
+			infestation: ["8M"], //new move
 			irondefense: ["8M"],
 			lightscreen: ["8M", "8L1"],
 			magicroom: ["8M"],
+			magnetbomb: ["8M"], //new move
 			megakick: ["8M"],
 			megapunch: ["8M"],
 			metronome: ["8M"],
@@ -18316,19 +18319,19 @@ export const Learnsets: import('../sim/dex-species').LearnsetDataTable = {
 			sleeptalk: ["8M"],
 			snore: ["8M"],
 			solarbeam: ["8M"],
-			stealthrock: ["6M"], //new move
+			stealthrock: ["8M"], //new move
 			stompingtantrum: ["8M"],
 			storedpower: ["8M"],
 			substitute: ["8M"],
 			suckerpunch: ["8L40"],
 			sunnyday: ["8M"],
-			swagger: ["6M"], //new move
+			swagger: ["8M"], //new move
 			taunt: ["8M"],
 			teeterdance: ["8L52"],
 			thief: ["8M"],
 			thunder: ["8M"],
 			thunderbolt: ["8M"],
-			thunderpunch: ["6M"], //new move
+			thunderpunch: ["8M"], //new move
 			thunderwave: ["8M"],
 			tickle: ["8E"],
 			trick: ["8M"],
@@ -18337,9 +18340,6 @@ export const Learnsets: import('../sim/dex-species').LearnsetDataTable = {
 			uproar: ["8M"],
 			wonderroom: ["8M"],
 			zenheadbutt: ["8M"],
-			frostbreath: ["6M"], //new move
-			magnetbomb: ["6M"], //new move
-			chillingwater: ["6M"], //new move
 		},
 		eventData: [
 			{generation: 8, level: 15, isHidden: true, moves: ["copycat", "encore", "iceshard", "confusion"], pokeball: "cherishball"},
