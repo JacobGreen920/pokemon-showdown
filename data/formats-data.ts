@@ -4343,7 +4343,7 @@ export const FormatsData: import('../sim/dex-species').SpeciesFormatsDataTable =
 	incineroar: {
 		tier: "NU",
 		doublesTier: "DOU",
-		natDexTier: "9",
+		natDexTier: "8",
 	},
 	popplio: {
 		tier: "LC",
