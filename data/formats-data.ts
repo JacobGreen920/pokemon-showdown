@@ -1524,7 +1524,7 @@ export const FormatsData: import('../sim/dex-species').SpeciesFormatsDataTable =
 	gligar: {
 		tier: "NU",
 		doublesTier: "NFE",
-		natDexTier: "6",
+		natDexTier: "7",
 	},
 	gliscor: {
 		tier: "OU",
