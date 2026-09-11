@@ -1983,7 +1983,7 @@ export class TeamValidator {
 					return null;
 				}
 				if (item.isNonstandard === "Past") {
-					return `${set.name}'s item ${item.name} does not exist in Gen ${dex.gen}.`;
+					return `${set.name}'s item ${item.name} does not exist.`;
 				}
 				return `${set.name}'s item ${item.name} does not exist in this game.`;
 			}
