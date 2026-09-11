@@ -1857,8 +1857,30 @@ export class TeamValidator {
 			}
 		}
 
-		const tagProblem = this.checkTagRules(set, tierSpecies, setHas);
-		if (tagProblem !== undefined) return tagProblem;
+		// We can't return here because the `-nonexistent` rule is a bit
+		// complicated in terms of what trumps it. We don't want e.g.
+		// +Mythical to unban Shaymin in Gen 1, for instance.
+		let nonexistentCheck = Tags.nonexistent.genericFilter!(tierSpecies) && ruleTable.check('nonexistent');
+
+		if (nonexistentCheck) {
+			if (tierSpecies.isNonstandard === 'Future') {
+				return null;
+			}
+			if (tierSpecies.isNonstandard === 'Past') {
+				return `${tierSpecies.name} does not exist in Gen ${dex.gen}.`;
+			}
+			if (tierSpecies.isNonstandard === 'LGPE') {
+				return `${tierSpecies.name} does not exist in this game, only in Let's Go Pikachu/Eevee.`;
+			}
+			if (tierSpecies.isNonstandard === 'CAP') {
+				return `${tierSpecies.name} is a CAP and does not exist in this game.`;
+			}
+			if (tierSpecies.isNonstandard === 'Unobtainable') {
+				return `${tierSpecies.name} is not possible to obtain in this game.`;
+			}
+			return `${tierSpecies.name} does not exist in this game.`;
+		}
+		if (nonexistentCheck === '') return null;
 
 		// Special casing for Pokemon that can Gmax, but their Gmax factor cannot be legally obtained
 		if (tierSpecies.gmaxUnreleased && set.gigantamax) {
@@ -1983,7 +2005,7 @@ export class TeamValidator {
 					return null;
 				}
 				if (item.isNonstandard === "Past") {
-					return `${set.name}'s item ${item.name} does not exist.`;
+					return `${set.name}'s item ${item.name} does not exist in this Gen`;
 				}
 				return `${set.name}'s item ${item.name} does not exist in this game.`;
 			}
