@@ -3728,7 +3728,7 @@ export const Formats: import('../sim/dex-formats').FormatList = [
 		desc: `Pok&eacute;mon have access to almost any ability.`,
 		mod: 'gen9',
 		searchShow: false,
-		ruleset: ['Standard NatDex', '!Obtainable Abilities', 'Ability Clause = 2', '!Sleep Clause Mod', 'Sleep Moves Clause', 'Terastal Clause', 'Z-Move Clause'],
+		ruleset: ['Standard NatDex', '!Obtainable Abilities', 'Ability Clause = 2', '!Sleep Clause Mod', 'Sleep Moves Clause', 'Terastal Clause'],
 		banlist: [
 			'Annihilape', 'Arceus', 'Archeops', 'Baxcalibur', 'Bisharp', 'Blacephalon', 'Blastoise-Mega', 'Blaziken-Mega', 'Calyrex-Ice', 'Calyrex-Shadow', 'Ceruledge', 'Darkrai', 'Deoxys-Attack',
 			'Deoxys-Normal', 'Dialga', 'Dialga-Origin', 'Dracovish', 'Dragapult', 'Enamorus-Incarnate', 'Eternatus', 'Flutter Mane', 'Genesect', 'Gengar-Mega', 'Giratina', 'Giratina-Origin',
