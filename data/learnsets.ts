@@ -10683,6 +10683,7 @@ export const Learnsets: import('../sim/dex-species').LearnsetDataTable = {
 			poweruppunch: ["6M"],
 			protect: ["9M", "8V", "7M", "7V", "6M", "5M", "4M", "3M"],
 			rage: ["7V"],
+			rapidspin: ["9M"], // custom move addition
 			rest: ["9M", "8V", "7M", "7V", "6M", "5M", "4M", "3M"],
 			return: ["7M", "7V", "6M", "5M", "4M", "3M"],
 			rockblast: ["9M", "9L34", "7L34", "6L22", "5L22", "4L27", "3L37"],
@@ -10770,6 +10771,7 @@ export const Learnsets: import('../sim/dex-species').LearnsetDataTable = {
 			mudslap: ["9M"],
 			naturepower: ["7M"],
 			protect: ["9M", "8V", "7M"],
+			rapidspin: ["9M"], // custom move addition
 			rest: ["9M", "8V", "7M"],
 			return: ["7M"],
 			rockblast: ["9M", "9L34", "7L34"],
@@ -10867,6 +10869,7 @@ export const Learnsets: import('../sim/dex-species').LearnsetDataTable = {
 			poweruppunch: ["6M"],
 			protect: ["9M", "8V", "7M", "7V", "6M", "5M", "4M", "3M"],
 			rage: ["7V"],
+			rapidspin: ["9M"], // custom move addition
 			rest: ["9M", "8V", "7M", "7V", "6M", "5M", "4M", "3M"],
 			return: ["7M", "7V", "6M", "5M", "4M", "3M"],
 			roar: ["9M", "7M", "7V", "6M", "5M", "4M", "3M"],
@@ -10958,6 +10961,7 @@ export const Learnsets: import('../sim/dex-species').LearnsetDataTable = {
 			mudslap: ["9M"],
 			naturepower: ["7M"],
 			protect: ["9M", "8V", "7M"],
+			rapidspin: ["9M"], // custom move addition
 			rest: ["9M", "8V", "7M"],
 			return: ["7M"],
 			roar: ["9M", "7M"],
