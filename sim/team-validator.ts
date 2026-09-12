@@ -1867,7 +1867,7 @@ export class TeamValidator {
 				return null;
 			}
 			if (tierSpecies.isNonstandard === 'Past') {
-				return `${tierSpecies.name} does not exist in Gen ${dex.gen}.`;
+				return null;
 			}
 			if (tierSpecies.isNonstandard === 'LGPE') {
 				return `${tierSpecies.name} does not exist in this game, only in Let's Go Pikachu/Eevee.`;
