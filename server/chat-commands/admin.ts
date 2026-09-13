@@ -12,7 +12,6 @@
 
 import * as path from 'path';
 import * as child_process from 'child_process';
-import { createRequire } from 'module';
 import { FS, Utils, ProcessManager, SQL } from '../../lib';
 
 interface ProcessData {
@@ -38,29 +37,6 @@ function bash(command: string, context: Chat.CommandContext, cwd?: string): Prom
 			resolve([error?.code || 0, stdout, stderr]);
 		});
 	});
-}
-
-function clearRequireCache(options: { exclude?: string[] } = {}) {
-	const excludes = [...(options?.exclude || []), '/node_modules/'];
-
-	for (const filepath in require.cache) {
-		if (excludes.some(p => filepath.includes(p))) continue;
-		const mod = require.cache[filepath]; // have to ref to appease ts
-		if (!mod) continue;
-		uncacheModuleTree(mod, excludes);
-		delete require.cache[filepath];
-	}
-}
-
-function uncacheModuleTree(mod: NodeJS.Module, excludes: string[]) {
-	const children = mod.children;
-	if (!children?.length || excludes.some(p => mod.filename.includes(p))) return;
-	// delete before recursing in case of circular requires
-	delete (mod as any).children;
-	for (const child of children) {
-		if (excludes.some(p => child.filename.includes(p))) continue;
-		uncacheModuleTree(child, excludes);
-	}
 }
 
 function keysIncludingNonEnumerable(obj: object) {
@@ -632,25 +608,13 @@ export const commands: Chat.ChatCommands = {
 		await this.parse(`/rebuild`);
 		const lock = Monitor.hotpatchLock;
 		const hotpatches = [
-			'formats', 'chat', 'loginserver', 'punishments', 'dnsbl', 'modlog',
+			'chat', 'formats', 'loginserver', 'punishments', 'dnsbl', 'modlog',
 			'processmanager', 'roomsp', 'usersp',
 		];
 
 		target = toID(target);
 		try {
-			const exclude = ['/lib/process-manager'];
-			if (!['all', 'formats', 'battles', 'validator', 'learnsets'].includes(target)) {
-				exclude.push('/sim/');
-			}
-			clearRequireCache({ exclude });
-			// Node retains `module.parent`, which means each hotpatch refers to the `admin.ts`
-			// from the hotpatch before it in an unbroken chain through every hotpatch,
-			// preventing any of them from being GC'd. There's no way to break this reference,
-			// either.
-			//
-			// But createRequire makes a new module to be a parent, breaking this chain and
-			// allowing hotpatched modules to be GC'd.
-			const reRequire = createRequire(__filename);
+			Utils.clearRequireCache({ exclude: ['/lib/process-manager'] });
 			if (target === 'all') {
 				if (lock['all']) {
 					throw new Chat.ErrorMessage(`Hot-patching all has been disabled by ${lock['all'].by} (${lock['all'].reason})`);
@@ -684,9 +648,9 @@ export const commands: Chat.ChatCommands = {
 				const oldPlugins = Chat.plugins;
 				Chat.destroy();
 
-				global.Chat = reRequire('../chat').Chat;
+				global.Chat = require('../chat').Chat;
 				Chat.start(Config.subprocessescache);
-				global.Tournaments = reRequire('../tournaments').Tournaments;
+				global.Tournaments = require('../tournaments').Tournaments;
 
 				this.sendReply("Reloading chat plugins...");
 				Chat.loadPlugins(oldPlugins);
@@ -700,18 +664,11 @@ export const commands: Chat.ChatCommands = {
 				}
 				this.sendReply('Hotpatching processmanager prototypes...');
 
-				// grab new prototypes and graft them onto old PM instances.
-				// restore the old require.cache afterwards because it has all
-				// the references to the modules actually being used
-				const pmPath = require.resolve('../../lib/process-manager');
-				const oldPMModule = require.cache[pmPath];
-				delete require.cache[pmPath];
-				const newPM = reRequire('../../lib/process-manager');
-				if (oldPMModule) {
-					require.cache[pmPath] = oldPMModule;
-				} else {
-					delete require.cache[pmPath];
-				}
+				// keep references
+				const cache = { ...require.cache };
+				Utils.clearRequireCache();
+				const newPM = require('../../lib/process-manager');
+				require.cache = cache;
 
 				const protos = [
 					[ProcessManager.QueryProcessManager, newPM.QueryProcessManager],
@@ -720,7 +677,7 @@ export const commands: Chat.ChatCommands = {
 					[ProcessManager.RawProcessManager, newPM.RawProcessManager],
 					[ProcessManager.QueryProcessWrapper, newPM.QueryProcessWrapper],
 					[ProcessManager.StreamProcessWrapper, newPM.StreamProcessWrapper],
-					[ProcessManager.RawProcessWrapper, newPM.RawProcessWrapper],
+					[ProcessManager.RawProcessManager, newPM.RawProcessWrapper],
 				].map(part => part.map(constructor => constructor.prototype));
 
 				for (const [oldProto, newProto] of protos) {
@@ -743,12 +700,12 @@ export const commands: Chat.ChatCommands = {
 				let newProto: any, oldProto: any, message: string;
 				switch (target) {
 				case 'usersp':
-					newProto = reRequire('../users').User.prototype;
+					newProto = require('../users').User.prototype;
 					oldProto = Users.User.prototype;
 					message = 'user prototypes';
 					break;
 				case 'roomsp':
-					newProto = reRequire('../rooms').BasicRoom.prototype;
+					newProto = require('../rooms').BasicRoom.prototype;
 					oldProto = Rooms.BasicRoom.prototype;
 					message = 'rooms prototypes';
 					break;
@@ -794,7 +751,7 @@ export const commands: Chat.ChatCommands = {
 				}
 				this.sendReply("Hotpatching tournaments...");
 
-				global.Tournaments = reRequire('../tournaments').Tournaments;
+				global.Tournaments = require('../tournaments').Tournaments;
 				Chat.loadPlugin(Tournaments, 'tournaments');
 				this.sendReply("DONE");
 			} else if (target === 'formats' || target === 'battles') {
@@ -810,8 +767,7 @@ export const commands: Chat.ChatCommands = {
 				this.sendReply("Hotpatching formats...");
 
 				// reload .sim-dist/dex.js
-				global.Dex = reRequire('../../sim/dex').Dex;
-				global.TeamValidator = reRequire('../../sim/team-validator').TeamValidator;
+				global.Dex = require('../../sim/dex').Dex;
 				// rebuild the formats list
 				Rooms.global.formatList = '';
 				// respawn validator processes
@@ -821,14 +777,14 @@ export const commands: Chat.ChatCommands = {
 				// respawn datasearch processes (crashes otherwise, since the Dex data in the PM can be out of date)
 				void Chat.plugins.datasearch?.PM?.respawn();
 				// update teams global
-				global.Teams = reRequire('../../sim/teams').Teams;
+				global.Teams = require('../../sim/teams').Teams;
 				// broadcast the new formats list to clients
 				Rooms.global.sendAll(Rooms.global.formatListText);
 				this.sendReply("DONE");
 			} else if (target === 'loginserver') {
 				this.sendReply("Hotpatching loginserver...");
 				FS('config/custom.css').unwatch();
-				global.LoginServer = reRequire('../loginserver').LoginServer;
+				global.LoginServer = require('../loginserver').LoginServer;
 				this.sendReply("DONE. New login server requests will use the new code.");
 			} else if (target === 'learnsets' || target === 'validator') {
 				if (lock['validator']) {
@@ -840,9 +796,8 @@ export const commands: Chat.ChatCommands = {
 
 				this.sendReply("Hotpatching validator...");
 				void TeamValidatorAsync.PM.respawn();
-				// don't update the same-process TeamValidator; that one gets hotpatched with Dex
 				// update teams global too while we're at it
-				global.Teams = reRequire('../../sim/teams').Teams;
+				global.Teams = require('../../sim/teams').Teams;
 				this.sendReply("DONE. Any battles started after now will have teams be validated according to the new code.");
 			} else if (target === 'punishments') {
 				if (lock['punishments']) {
@@ -850,12 +805,12 @@ export const commands: Chat.ChatCommands = {
 				}
 
 				this.sendReply("Hotpatching punishments...");
-				global.Punishments = reRequire('../punishments').Punishments;
+				global.Punishments = require('../punishments').Punishments;
 				this.sendReply("DONE");
 			} else if (target === 'dnsbl' || target === 'datacenters' || target === 'iptools') {
 				this.sendReply("Hotpatching ip-tools...");
 
-				global.IPTools = reRequire('../ip-tools').IPTools;
+				global.IPTools = require('../ip-tools').IPTools;
 				void IPTools.loadHostsAndRanges();
 				this.sendReply("DONE");
 			} else if (target === 'modlog') {

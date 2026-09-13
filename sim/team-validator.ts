@@ -15,8 +15,6 @@ import { Teams } from './teams';
 import { PRNG } from './prng';
 import { type RuleTable } from './dex-formats';
 
-const EXISTENCE_TAGS = ['past', 'future', 'lgpe', 'unobtainable', 'cap', 'custom', 'nonexistent'];
-
 /**
  * Describes a possible way to get a pokemon. Is not exhaustive!
  * sourcesBefore covers all sources that do not have exclusive
@@ -541,7 +539,7 @@ export class TeamValidator {
 		}
 
 		if (ruleTable.has('obtainableformes')) {
-			const canMegaEvo = dex.gen <= 7 || ruleTable.has('+tag:past');
+			const canMegaEvo = dex.gen <= 7 || ruleTable.has('+pokemontag:past');
 			if (item.megaStone?.[species.name]) {
 				tierSpecies = dex.species.get(item.megaStone[species.name]);
 			} else if (item.id === 'redorb' && species.id === 'groudon') {
@@ -586,11 +584,7 @@ export class TeamValidator {
 			if (set.name === set.species) {
 				set.name = species.baseSpecies;
 			} else {
-				problems.push(`${set.species}'s nickname "${set.name}" is too long.`);
-				problems.push(
-					`(It's ${set.name.length} characters long, but should be 18 or less. ` +
-					`Some characters, like emojis, may count as more than one.)`
-				);
+				problems.push(`Nickname "${set.name}" too long (should be 18 characters or fewer)`);
 			}
 		}
 		set.name = dex.getName(set.name);
@@ -740,7 +734,6 @@ export class TeamValidator {
 			}
 		}
 
-		let rockHeadBasculin = false;
 		if (!set.ability) set.ability = 'No Ability';
 		if (ruleTable.has('obtainableabilities')) {
 			if (dex.gen <= 2 || dex.currentMod === 'gen7letsgo') {
@@ -780,16 +773,6 @@ export class TeamValidator {
 					}
 				} else {
 					setSources.isHidden = false;
-				}
-				if (dex.currentMod === 'gen5bw1' && species.id === 'basculinbluestriped' && set.ability === 'Rock Head') {
-					const eventData: EventInfo = {
-						generation: 5, level: 25, gender: "M", ivs: { hp: 20, atk: 31, def: 20, spa: 20, spd: 20, spe: 20 }, nature: "Adamant",
-					};
-					const eventProblems = this.validateEvent(
-						set, setSources, eventData, species, ` to have Rock Head`, `from an in-game trade`
-					);
-					if (eventProblems) problems.push(...eventProblems);
-					rockHeadBasculin = true;
 				}
 			}
 		}
@@ -1071,7 +1054,7 @@ export class TeamValidator {
 				problems.push(`${name} has a Hidden Ability - it can't use moves from before Gen 5.`);
 			}
 			if (
-				((species.maleOnlyHidden && setSources.isHidden) || rockHeadBasculin) && setSources.sourcesBefore < 5 &&
+				species.maleOnlyHidden && setSources.isHidden && setSources.sourcesBefore < 5 &&
 				setSources.sources.every(source => source.charAt(1) === 'E')
 			) {
 				problems.push(`${name} has an unbreedable Hidden Ability - it can't use egg moves.`);
@@ -1780,7 +1763,7 @@ export class TeamValidator {
 		if (tierSpecies !== species) {
 			setHas['pokemon:' + tierSpecies.id] = true;
 			if (tierSpecies.isMega || tierSpecies.isPrimal) {
-				setHas['tag:mega'] = true;
+				setHas['pokemontag:mega'] = true;
 				isMega = true;
 			}
 		}
@@ -1788,7 +1771,6 @@ export class TeamValidator {
 		let isGmax = false;
 		if (tierSpecies.canGigantamax && set.gigantamax) {
 			setHas['pokemon:' + tierSpecies.id + 'gmax'] = true;
-			setHas['tag:gigantamax'] = true;
 			isGmax = true;
 		}
 		if (tierSpecies.baseSpecies === 'Greninja' && toID(set.ability) === 'battlebond') {
@@ -1799,15 +1781,15 @@ export class TeamValidator {
 		}
 
 		const tier = tierSpecies.tier;
-		const tierTag = 'tag:' + toID(tier);
+		const tierTag = 'pokemontag:' + toID(tier);
 		setHas[tierTag] = true;
 
 		const doublesTier = tierSpecies.doublesTier === '(DUU)' ? 'DNU' : tierSpecies.doublesTier;
-		const doublesTierTag = 'tag:' + toID(doublesTier);
+		const doublesTierTag = 'pokemontag:' + toID(doublesTier);
 		setHas[doublesTierTag] = true;
 
 		const ndTier = tierSpecies.natDexTier;
-		const ndTierTag = 'tag:nd' + toID(ndTier);
+		const ndTierTag = 'pokemontag:nd' + toID(ndTier);
 		setHas[ndTierTag] = true;
 
 		// Only pokemon that can gigantamax should have the Gmax flag
@@ -1830,15 +1812,14 @@ export class TeamValidator {
 		}
 
 		if (isMega) {
-			banReason = ruleTable.check('tag:mega', setHas);
+			banReason = ruleTable.check('pokemontag:mega', setHas);
 			if (banReason) {
 				return `Mega evolutions are ${banReason}.`;
 			}
 		}
 
 		if (isGmax) {
-			banReason = ruleTable.check('pokemon:' + tierSpecies.id + 'gmax') ||
-				ruleTable.check('tag:gigantamax', setHas);
+			banReason = ruleTable.check('pokemon:' + tierSpecies.id + 'gmax');
 			if (banReason) {
 				return `Gigantamaxing ${species.name} is ${banReason}.`;
 			}
@@ -1862,12 +1843,34 @@ export class TeamValidator {
 		// +Mythical to unban Shaymin in Gen 1, for instance.
 		let nonexistentCheck = Tags.nonexistent.genericFilter!(tierSpecies) && ruleTable.check('nonexistent');
 
+		const EXISTENCE_TAG = ['past', 'future', 'lgpe', 'unobtainable', 'cap', 'custom', 'nonexistent'];
+
+		for (const ruleid of ruleTable.tagRules) {
+			if (ruleid.startsWith('*')) continue;
+			const tagid = ruleid.slice(12) as ID;
+			const tag = Tags[tagid];
+			if ((tag.speciesFilter || tag.genericFilter)!(tierSpecies)) {
+				const existenceTag = EXISTENCE_TAG.includes(tagid);
+				if (ruleid.startsWith('+')) {
+					// we want rules like +CAP to trump -Nonexistent, but most tags shouldn't
+					if (!existenceTag && nonexistentCheck) continue;
+					return null;
+				}
+				if (existenceTag) {
+					// for a nicer error message
+					nonexistentCheck = 'banned';
+					break;
+				}
+				return `${species.name} is tagged ${tag.name}, which is ${ruleTable.check(ruleid.slice(1)) || "banned"}.`;
+			}
+		}
+
 		if (nonexistentCheck) {
 			if (tierSpecies.isNonstandard === 'Future') {
 				return null;
 			}
 			if (tierSpecies.isNonstandard === 'Past') {
-				return null;
+				return `${tierSpecies.name} does not exist in Gen ${dex.gen}.`;
 			}
 			if (tierSpecies.isNonstandard === 'LGPE') {
 				return `${tierSpecies.name} does not exist in this game, only in Let's Go Pikachu/Eevee.`;
@@ -1878,20 +1881,23 @@ export class TeamValidator {
 			if (tierSpecies.isNonstandard === 'Unobtainable') {
 				return `${tierSpecies.name} is not possible to obtain in this game.`;
 			}
+			if (tierSpecies.isNonstandard === 'Gigantamax') {
+				return `${tierSpecies.name} is a placeholder for a Gigantamax sprite, not a real Pokémon. (This message is likely to be a validator bug.)`;
+			}
 			return `${tierSpecies.name} does not exist in this game.`;
 		}
 		if (nonexistentCheck === '') return null;
 
 		// Special casing for Pokemon that can Gmax, but their Gmax factor cannot be legally obtained
 		if (tierSpecies.gmaxUnreleased && set.gigantamax) {
-			banReason = ruleTable.check('tag:unobtainable');
+			banReason = ruleTable.check('pokemontag:unobtainable');
 			if (banReason) {
 				return `${tierSpecies.name} is flagged as gigantamax, but it cannot gigantamax without hacking or glitches.`;
 			}
 			if (banReason === '') return null;
 		}
 
-		banReason = ruleTable.check('tag:allpokemon');
+		banReason = ruleTable.check('pokemontag:allpokemon');
 		if (banReason) {
 			return `${species.name} is not in the list of allowed pokemon.`;
 		}
@@ -1899,73 +1905,8 @@ export class TeamValidator {
 		return null;
 	}
 
-	checkTagRules(set: PokemonSet, thing: Species | Item | Move, setHas?: { [k: string]: true }) {
-		const dex = this.dex;
-		const ruleTable = this.ruleTable;
-		const displayName = thing.effectType === 'Pokemon' ? (
-			set.name === thing.name ? set.name : `${set.name} (${thing.name})`
-		) : (
-			`${set.name}'s ${thing.effectType.toLowerCase()} ${thing.name}`
-		);
-		// We can't return here because the `-nonexistent` rule is a bit
-		// complicated in terms of what trumps it. We don't want e.g.
-		// +Mythical to unban Shaymin in Gen 1, for instance.
-		let nonexistentCheck = Tags.nonexistent.genericFilter!(thing) && ruleTable.check('nonexistent', setHas);
-
-		for (const [type, match] of ruleTable.tagRules) {
-			if (type === '*') continue;
-			const tagMatches = ruleTable.matchesTagRule(match, thing);
-			if (!tagMatches) continue;
-			const existenceTag = typeof match === 'string' && EXISTENCE_TAGS.includes(match as string);
-			if (type === '+') {
-				// We want rules like +CAP or +Past to trump -Nonexistent, but most tags shouldn't.
-				if (!existenceTag && nonexistentCheck) continue;
-				return null;
-			}
-			if (existenceTag) {
-				// for a nicer error message
-				nonexistentCheck = 'banned';
-				break;
-			}
-			const banReason = typeof match === 'string' ?
-				ruleTable.check(`tag:${match}`) :
-				ruleTable.check(`numtag:${match[0]}${match[1]}${match[2]}`);
-			return `${displayName} ${ruleTable.describeTagRule(match)}, which is ${banReason || "banned"}.`;
-		}
-
-		if (nonexistentCheck) {
-			if (thing.isNonstandard === 'Unobtainable') {
-				if (thing.effectType === 'Move') {
-					return `${displayName} is not obtainable without hacking or glitches${dex.gen >= 9 && thing.gen < dex.gen ? ` in Gen ${dex.gen}` : ``}.`;
-				}
-				return `${displayName} is not obtainable without hacking or glitches.`;
-			}
-			if (thing.effectType === 'Pokemon' && thing.placeholderFor) {
-				// The validator is supposed to interpret the placeholder as the
-				// base species with the G-max Factor, so `thing` should not be the
-				// placeholder at this step of validation. It's not impossible for
-				// this to happen with an unusual ruleset, though, so we won't throw.
-				return `${displayName} is a placeholder for a Gigantamax sprite, not a real Pokémon. (This message is likely a validator bug.)`;
-			}
-			if (thing.effectType === 'Move' && thing.isNonstandard === 'Gmax') {
-				return `${displayName} is a placeholder for the Gigantamax version of ${thing.isMax}. It can't actually exist on a normal moveset.`;
-			}
-			if (thing.isNonstandard === 'Past' || thing.isNonstandard === 'Future') {
-				return `${displayName} does not exist in Gen ${dex.gen}.`;
-			}
-			if (thing.isNonstandard === 'CAP') {
-				return `${displayName} is made up for Smogon CAP and does not exist in this game.`;
-			}
-			if (thing.isNonstandard === 'LGPE') {
-				return `${displayName} does not exist in this game, only in Let's Go Pikachu/Eevee.`;
-			}
-			return `${displayName} does not exist in this game.`;
-		}
-		if (nonexistentCheck === '') return null;
-		return undefined;
-	}
-
 	checkItem(set: PokemonSet, item: Item, setHas: { [k: string]: true }) {
+		const dex = this.dex;
 		const ruleTable = this.ruleTable;
 
 		setHas['item:' + item.id] = true;
@@ -1981,7 +1922,7 @@ export class TeamValidator {
 
 		if (!item.id) return null;
 
-		banReason = ruleTable.check('tag:allitems');
+		banReason = ruleTable.check('pokemontag:allitems');
 		if (banReason) {
 			return `${set.name}'s item ${item.name} is not in the list of allowed items.`;
 		}
@@ -2016,6 +1957,7 @@ export class TeamValidator {
 	}
 
 	checkMove(set: PokemonSet, move: Move, setHas: { [k: string]: true }) {
+		const dex = this.dex;
 		const ruleTable = this.ruleTable;
 
 		setHas['move:' + move.id] = true;
@@ -2026,13 +1968,36 @@ export class TeamValidator {
 		}
 		if (banReason === '') return null;
 
-		banReason = ruleTable.check('tag:allmoves');
+		banReason = ruleTable.check('pokemontag:allmoves');
 		if (banReason) {
 			return `${set.name}'s move ${move.name} is not in the list of allowed moves.`;
 		}
 
-		const tagProblem = this.checkTagRules(set, move, setHas);
-		if (tagProblem !== undefined) return tagProblem;
+		// obtainability
+		if (move.isNonstandard) {
+			banReason = ruleTable.check('pokemontag:' + toID(move.isNonstandard));
+			if (banReason) {
+				if (move.isNonstandard === 'Unobtainable') {
+					return `${move.name} is not obtainable without hacking or glitches${dex.gen >= 9 && move.gen < dex.gen ? ` in Gen ${dex.gen}` : ``}.`;
+				}
+				if (move.isNonstandard === 'Gigantamax') {
+					return `${move.name} is not usable without Gigantamaxing its user, ${move.isMax}.`;
+				}
+				return `${set.name}'s move ${move.name} is tagged ${move.isNonstandard}, which is ${banReason}.`;
+			}
+			if (banReason === '') return null;
+		}
+
+		if (move.isNonstandard && move.isNonstandard !== 'Unobtainable') {
+			banReason = ruleTable.check('nonexistent', setHas);
+			if (banReason) {
+				if (['Past', 'Future'].includes(move.isNonstandard)) {
+					return `${set.name}'s move ${move.name} does not exist in Gen ${dex.gen}.`;
+				}
+				return `${set.name}'s move ${move.name} does not exist in this game.`;
+			}
+			if (banReason === '') return null;
+		}
 
 		return null;
 	}
@@ -2062,14 +2027,14 @@ export class TeamValidator {
 		}
 		if (banReason === '') return null;
 
-		banReason = ruleTable.check('tag:allabilities');
+		banReason = ruleTable.check('pokemontag:allabilities');
 		if (banReason) {
 			return `${set.name}'s ability ${ability.name} is not in the list of allowed abilities.`;
 		}
 
 		// obtainability
 		if (ability.isNonstandard) {
-			banReason = ruleTable.check('tag:' + toID(ability.isNonstandard));
+			banReason = ruleTable.check('pokemontag:' + toID(ability.isNonstandard));
 			if (banReason) {
 				return `${set.name}'s ability ${ability.name} is tagged ${ability.isNonstandard}, which is ${banReason}.`;
 			}
@@ -2107,7 +2072,7 @@ export class TeamValidator {
 
 		// obtainability
 		if (nature.isNonstandard) {
-			banReason = ruleTable.check('tag:' + toID(nature.isNonstandard));
+			banReason = ruleTable.check('pokemontag:' + toID(nature.isNonstandard));
 			if (banReason) {
 				return `${set.name}'s nature ${nature.name} is tagged ${nature.isNonstandard}, which is ${banReason}.`;
 			}

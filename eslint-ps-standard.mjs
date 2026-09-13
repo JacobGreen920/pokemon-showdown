@@ -188,7 +188,7 @@ export const defaultRules = {
 	"@stylistic/lines-between-class-members": "off",
 	"@stylistic/multiline-ternary": "off",
 	"@stylistic/object-curly-spacing": ["error", "always"],
-	"@stylistic/indent": ["error", "tab", { "flatTernaryExpressions": true, "SwitchCase": 0 }],
+	"@stylistic/indent": ["error", "tab", { "flatTernaryExpressions": true }],
 };
 
 /** @type {NonNullable<Config['rules']>} */
@@ -332,8 +332,7 @@ export const defaultRulesES3 = {
 	"no-invalid-this": "error",
 	"no-new-wrappers": "error",
 	// Map/Set can be polyfilled but it's nontrivial and it's easier just to use bare objects
-	// fetch can be polyfilled, but our standard is to use $.get or Net as appropriate.
-	"no-restricted-globals": ["error", "Proxy", "Reflect", "Symbol", "WeakSet", "WeakMap", "Set", "Map", "fetch"],
+	"no-restricted-globals": ["error", "Proxy", "Reflect", "Symbol", "WeakSet", "WeakMap", "Set", "Map"],
 	"unicode-bom": "error",
 };
 
@@ -346,9 +345,7 @@ export const defaultRulesES3 = {
 export const defaultRulesES3TSChecked = {
 	...defaultRulesTSChecked,
 	"radix": "off",
-	// Map/Set can be polyfilled but it's nontrivial and it's easier just to use bare objects
-	// fetch can be polyfilled, but our standard is to use $.get or Net as appropriate.
-	"no-restricted-globals": ["error", "Proxy", "Reflect", "Symbol", "WeakSet", "WeakMap", "Set", "Map", "fetch"],
+	"no-restricted-globals": ["error", "Proxy", "Reflect", "Symbol", "WeakSet", "WeakMap", "Set", "Map"],
 	"no-restricted-syntax": ["error", "YieldExpression", "AwaitExpression", "BigIntLiteral"],
 };
 

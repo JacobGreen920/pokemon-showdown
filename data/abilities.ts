@@ -307,16 +307,6 @@ export const Abilities: import('../sim/dex-abilities').AbilityDataTable = {
 		rating: 1,
 		num: 188,
 	},
-	auraguard: {
-		isNonstandard: "Future",
-		onSourceModifyDamage(damage, source, target, move) {
-			if (move.flags['contact']) return this.chainModify(0.5);
-		},
-		flags: { breakable: 1 }, // TODO check breakable
-		name: "Aura Guard",
-		rating: 3.5,
-		num: 319,
-	},
 	baddreams: {
 		onResidualOrder: 28,
 		onResidualSubOrder: 2,
@@ -448,7 +438,7 @@ export const Abilities: import('../sim/dex-abilities').AbilityDataTable = {
 			if (boost.def && boost.def < 0) {
 				delete boost.def;
 				if (!(effect as ActiveMove).secondaries && effect.id !== 'octolock') {
-					this.add('-fail', target, 'unboost', 'def', '[from] ability: Big Pecks', `[of] ${target}`);
+					this.add("-fail", target, "unboost", "Defense", "[from] ability: Big Pecks", `[of] ${target}`);
 				}
 			}
 		},
@@ -532,7 +522,7 @@ export const Abilities: import('../sim/dex-abilities').AbilityDataTable = {
 				}
 			}
 			if (showMsg && !(effect as ActiveMove).secondaries && effect.id !== 'octolock') {
-				this.add('-fail', target, 'unboost', '[from] ability: Clear Body', `[of] ${target}`);
+				this.add("-fail", target, "unboost", "[from] ability: Clear Body", `[of] ${target}`);
 			}
 		},
 		flags: { breakable: 1 },
@@ -1567,7 +1557,7 @@ export const Abilities: import('../sim/dex-abilities').AbilityDataTable = {
 				}
 			}
 			if (showMsg && !(effect as ActiveMove).secondaries && effect.id !== 'octolock') {
-				this.add('-fail', target, 'unboost', '[from] ability: Full Metal Body', `[of] ${target}`);
+				this.add("-fail", target, "unboost", "[from] ability: Full Metal Body", `[of] ${target}`);
 			}
 		},
 		flags: {},
@@ -1943,7 +1933,7 @@ export const Abilities: import('../sim/dex-abilities').AbilityDataTable = {
 			if (boost.atk && boost.atk < 0) {
 				delete boost.atk;
 				if (!(effect as ActiveMove).secondaries) {
-					this.add('-fail', target, 'unboost', 'atk', '[from] ability: Hyper Cutter', `[of] ${target}`);
+					this.add("-fail", target, "unboost", "Attack", "[from] ability: Hyper Cutter", `[of] ${target}`);
 				}
 			}
 		},
@@ -2040,7 +2030,7 @@ export const Abilities: import('../sim/dex-abilities').AbilityDataTable = {
 			if (boost.accuracy && boost.accuracy < 0) {
 				delete boost.accuracy;
 				if (!(effect as ActiveMove).secondaries) {
-					this.add('-fail', target, 'unboost', 'accuracy', '[from] ability: Illuminate', `[of] ${target}`);
+					this.add("-fail", target, "unboost", "accuracy", "[from] ability: Illuminate", `[of] ${target}`);
 				}
 			}
 		},
@@ -2157,7 +2147,7 @@ export const Abilities: import('../sim/dex-abilities').AbilityDataTable = {
 		onTryBoost(boost, target, source, effect) {
 			if (effect.name === 'Intimidate' && boost.atk) {
 				delete boost.atk;
-				this.add('-fail', target, 'unboost', 'atk', '[from] ability: Inner Focus', `[of] ${target}`);
+				this.add('-fail', target, 'unboost', 'Attack', '[from] ability: Inner Focus', `[of] ${target}`);
 			}
 		},
 		flags: { breakable: 1 },
@@ -2263,7 +2253,7 @@ export const Abilities: import('../sim/dex-abilities').AbilityDataTable = {
 			if (boost.accuracy && boost.accuracy < 0) {
 				delete boost.accuracy;
 				if (!(effect as ActiveMove).secondaries) {
-					this.add('-fail', target, 'unboost', 'accuracy', '[from] ability: Keen Eye', `[of] ${target}`);
+					this.add("-fail", target, "unboost", "accuracy", "[from] ability: Keen Eye", `[of] ${target}`);
 				}
 			}
 		},
@@ -2622,7 +2612,7 @@ export const Abilities: import('../sim/dex-abilities').AbilityDataTable = {
 			if (boost.accuracy && boost.accuracy < 0) {
 				delete boost.accuracy;
 				if (!(effect as ActiveMove).secondaries) {
-					this.add('-fail', target, 'unboost', 'accuracy', '[from] ability: Mind\'s Eye', `[of] ${target}`);
+					this.add("-fail", target, "unboost", "accuracy", "[from] ability: Mind's Eye", `[of] ${target}`);
 				}
 			}
 		},
@@ -3030,7 +3020,7 @@ export const Abilities: import('../sim/dex-abilities').AbilityDataTable = {
 		onTryBoost(boost, target, source, effect) {
 			if (effect.name === 'Intimidate' && boost.atk) {
 				delete boost.atk;
-				this.add('-fail', target, 'unboost', 'atk', '[from] ability: Oblivious', `[of] ${target}`);
+				this.add('-fail', target, 'unboost', 'Attack', '[from] ability: Oblivious', `[of] ${target}`);
 			}
 		},
 		flags: { breakable: 1 },
@@ -3159,7 +3149,7 @@ export const Abilities: import('../sim/dex-abilities').AbilityDataTable = {
 		onTryBoost(boost, target, source, effect) {
 			if (effect.name === 'Intimidate' && boost.atk) {
 				delete boost.atk;
-				this.add('-fail', target, 'unboost', 'atk', '[from] ability: Own Tempo', `[of] ${target}`);
+				this.add('-fail', target, 'unboost', 'Attack', '[from] ability: Own Tempo', `[of] ${target}`);
 			}
 		},
 		flags: { breakable: 1 },
@@ -4088,7 +4078,7 @@ export const Abilities: import('../sim/dex-abilities').AbilityDataTable = {
 		onTryBoost(boost, target, source, effect) {
 			if (effect.name === 'Intimidate' && boost.atk) {
 				delete boost.atk;
-				this.add('-fail', target, 'unboost', 'atk', '[from] ability: Scrappy', `[of] ${target}`);
+				this.add('-fail', target, 'unboost', 'Attack', '[from] ability: Scrappy', `[of] ${target}`);
 			}
 		},
 		flags: {},
@@ -4466,7 +4456,9 @@ export const Abilities: import('../sim/dex-abilities').AbilityDataTable = {
 	spicyspray: {
 		isNonstandard: "Future",
 		onDamagingHit(damage, target, source, move) {
-			source.trySetStatus('brn', target);
+			if (!source.trySetStatus('brn', target) && !source.status && source.hasType('Fire')) {
+				this.add('-immune', source);
+			}
 		},
 		flags: {},
 		name: "Spicy Spray",
@@ -5482,7 +5474,7 @@ export const Abilities: import('../sim/dex-abilities').AbilityDataTable = {
 				}
 			}
 			if (showMsg && !(effect as ActiveMove).secondaries && effect.id !== 'octolock') {
-				this.add('-fail', target, 'unboost', '[from] ability: White Smoke', `[of] ${target}`);
+				this.add("-fail", target, "unboost", "[from] ability: White Smoke", `[of] ${target}`);
 			}
 		},
 		flags: { breakable: 1 },

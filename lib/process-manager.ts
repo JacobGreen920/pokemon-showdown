@@ -10,13 +10,14 @@
  */
 
 import * as child_process from 'child_process';
-import cluster, { type Worker } from 'cluster';
+import * as cluster from 'cluster';
 import * as path from 'path';
 import * as Streams from './streams';
 import { FS } from './fs';
 import { Repl, type EvalType } from './repl';
 
 type ChildProcess = child_process.ChildProcess;
+type Worker = cluster.Worker;
 
 export const processManagers: ProcessManager[] = [];
 

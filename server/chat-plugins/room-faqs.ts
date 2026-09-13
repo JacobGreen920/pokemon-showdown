@@ -50,7 +50,7 @@ export function visualizeFaq(faq: RoomFAQ) {
 
 export function getAlias(roomid: RoomID, key: string) {
 	if (!roomFaqs[roomid]) return false;
-	const value = roomFaqs[roomid][toID(key)];
+	const value = roomFaqs[roomid][key];
 	if (value?.alias) return value.source;
 	return false;
 }
@@ -87,7 +87,8 @@ export const commands: Chat.ChatCommands = {
 		if (!useHTML) {
 			text = text.replace(/^>/, '&gt;');
 		} else {
-			text = this.checkHTML(Chat.collapseLineBreaksHTML(text));
+			text = text.replace(/\n/ig, '<br />');
+			text = this.checkHTML(text);
 		}
 
 		if (!roomFaqs[room.roomid]) roomFaqs[room.roomid] = {};

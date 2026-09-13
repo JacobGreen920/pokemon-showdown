@@ -631,14 +631,12 @@ export class RandomGen3Teams extends RandomGen4Teams {
 		species: Species,
 		pokemon: RandomTeamsTypes.RandomSet[],
 	): boolean {
-		const reversalUsers = ['raticate', 'primeape', 'hitmonlee', 'furret', 'yanma', 'heracross', 'blaziken', 'medicham'];
-		const flailUsers = ['dodrio', 'farfetchd'];
 		const incompatibilityList = [
 			// These Pokemon are incompatible because the presence of one actively harms the other.
 			// Prevent Shedinja + Tyranitar
 			['shedinja', 'tyranitar'],
 			// Prevent Reversal/Flail users + Tyranitar
-			[[...flailUsers, ...reversalUsers], 'tyranitar'],
+			[['dodrio', 'raticate', 'primeape', 'hitmonlee', 'furret', 'yanma', 'heracross', 'blaziken', 'medicham'], 'tyranitar'],
 		];
 
 		for (const pair of incompatibilityList) {

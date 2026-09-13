@@ -654,7 +654,6 @@ export class RoomBattle extends RoomGame<RoomBattlePlayer> {
 			return;
 		}
 		request.isWait = false;
-		request.choice = '';
 
 		void this.stream.write(`>${player.slot} undo`);
 	}
@@ -857,7 +856,7 @@ export class RoomBattle extends RoomGame<RoomBattlePlayer> {
 		// If the room's replay was hidden, don't let users join after the game is over
 		if (this.room.hideReplay) {
 			this.room.settings.modjoin = '%';
-			this.room.setPrivate('hidden', this.password);
+			this.room.setPrivate('hidden');
 		}
 		this.room.update();
 
@@ -1383,7 +1382,7 @@ if (!PM.isParentProcess) {
 		slow(text: string) {
 			process.send!(`CALLBACK\nSLOW\n${text}`);
 		},
-	} as typeof Monitor;
+	};
 	global.__version = { head: '' };
 	try {
 		const head = execSync('git rev-parse HEAD', {

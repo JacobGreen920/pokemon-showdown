@@ -470,7 +470,7 @@ export class BattleActions {
 		}
 
 		const callerMoveForPressure = sourceEffect && (sourceEffect as ActiveMove).pp ? sourceEffect as ActiveMove : null;
-		if (!sourceEffect || callerMoveForPressure) {
+		if (!sourceEffect || callerMoveForPressure || sourceEffect.id === 'pursuit') {
 			let extraPP = 0;
 			for (const source of pressureTargets) {
 				const ppDrop = this.battle.runEvent('DeductPP', source, pokemon, move);
@@ -488,6 +488,7 @@ export class BattleActions {
 			tryMoveResult = this.battle.runEvent('TryMove', pokemon, target, move);
 		}
 		if (!tryMoveResult) {
+			move.mindBlownRecoil = false;
 			return tryMoveResult;
 		}
 
@@ -523,13 +524,7 @@ export class BattleActions {
 		}
 
 		if (!moveResult) {
-			const originalHp = pokemon.hp;
 			this.battle.singleEvent('MoveFail', move, null, target, pokemon, move);
-			if (pokemon && pokemon !== target && move.category !== 'Status') {
-				if (pokemon.hp <= pokemon.maxhp / 2 && originalHp > pokemon.maxhp / 2) {
-					this.battle.runEvent('EmergencyExit', pokemon, pokemon);
-				}
-			}
 			return false;
 		}
 
@@ -964,6 +959,14 @@ export class BattleActions {
 				// Total damage dealt is accumulated for the purposes of recoil (Parental Bond).
 				move.totalDamage += damage[i];
 			}
+			if (move.mindBlownRecoil) {
+				const hpBeforeRecoil = pokemon.hp;
+				this.battle.damage(Math.round(pokemon.maxhp / 2), pokemon, pokemon, this.dex.conditions.get(move.id), true);
+				move.mindBlownRecoil = false;
+				if (pokemon.hp <= pokemon.maxhp / 2 && hpBeforeRecoil > pokemon.maxhp / 2) {
+					this.battle.runEvent('EmergencyExit', pokemon, pokemon);
+				}
+			}
 			this.battle.eachEvent('Update');
 			if (!pokemon.hp && targets.length === 1) {
 				hit++; // report the correct number of hits for multihit moves
@@ -978,8 +981,26 @@ export class BattleActions {
 			this.battle.add('-hitcount', targets[0], hit - 1);
 		}
 
-		if (move.totalDamage) {
-			this.applyRecoilDamage(move.totalDamage, move, pokemon);
+		if ((move.recoil || move.id === 'chloroblast') && move.totalDamage) {
+			const hpBeforeRecoil = pokemon.hp;
+			this.battle.damage(this.calcRecoilDamage(move.totalDamage, move, pokemon), pokemon, pokemon, 'recoil');
+			if (pokemon.hp <= pokemon.maxhp / 2 && hpBeforeRecoil > pokemon.maxhp / 2) {
+				this.battle.runEvent('EmergencyExit', pokemon, pokemon);
+			}
+		}
+
+		if (move.struggleRecoil) {
+			const hpBeforeRecoil = pokemon.hp;
+			let recoilDamage;
+			if (this.dex.gen >= 5) {
+				recoilDamage = this.battle.clampIntRange(Math.round(pokemon.baseMaxhp / 4), 1);
+			} else {
+				recoilDamage = this.battle.clampIntRange(this.battle.trunc(pokemon.maxhp / 4), 1);
+			}
+			this.battle.directDamage(recoilDamage, pokemon, pokemon, { id: 'strugglerecoil' } as Condition);
+			if (pokemon.hp <= pokemon.maxhp / 2 && hpBeforeRecoil > pokemon.maxhp / 2) {
+				this.battle.runEvent('EmergencyExit', pokemon, pokemon);
+			}
 		}
 
 		// smartTarget messes up targetsCopy, but smartTarget should in theory ensure that targets will never fail, anyway
@@ -1376,26 +1397,9 @@ export class BattleActions {
 		return retVal === true ? undefined : retVal;
 	}
 
-	applyRecoilDamage(damageDealt: number, move: Move, pokemon: Pokemon): number | null {
-		let recoilDamage = null;
-		if (move.struggleRecoil) recoilDamage = this.battle.clampIntRange(Math.round(pokemon.baseMaxhp / 4), 1);
-		else if (move.mindBlownRecoil || move.chloroblastRecoil) recoilDamage = Math.round(pokemon.maxhp / 2);
-		else if (move.recoil) {
-			recoilDamage = this.battle.clampIntRange(Math.round(damageDealt * move.recoil[0] / move.recoil[1]), 1);
-		} else return null;
-
-		const hpBeforeRecoil = pokemon.hp;
-		if (move.struggleRecoil) {
-			this.battle.directDamage(recoilDamage, pokemon, pokemon, { id: 'strugglerecoil' } as Condition);
-		} else {
-			const effect = move.mindBlownRecoil ? this.dex.conditions.get(move.name) : 'recoil';
-			this.battle.damage(recoilDamage, pokemon, pokemon, effect);
-		}
-		if (pokemon.hp <= pokemon.maxhp / 2 && hpBeforeRecoil > pokemon.maxhp / 2) {
-			this.battle.runEvent('EmergencyExit', pokemon, pokemon);
-		}
-
-		return recoilDamage;
+	calcRecoilDamage(damageDealt: number, move: Move, pokemon: Pokemon): number {
+		if (move.id === 'chloroblast') return Math.round(pokemon.maxhp / 2);
+		return this.battle.clampIntRange(Math.round(damageDealt * move.recoil![0] / move.recoil![1]), 1);
 	}
 
 	getZMove(move: Move, pokemon: Pokemon, skipChecks?: boolean): string | undefined {
@@ -1871,8 +1875,8 @@ export class BattleActions {
 		const altForme = species.otherFormes && this.dex.species.get(species.otherFormes[0]);
 		const item = pokemon.getItem();
 		// Mega Rayquaza
-		if ((this.battle.gen <= 7 || this.battle.ruleTable.has('+tag:past') ||
-			this.battle.ruleTable.has('+tag:future')) &&
+		if ((this.battle.gen <= 7 || this.battle.ruleTable.has('+pokemontag:past') ||
+			this.battle.ruleTable.has('+pokemontag:future')) &&
 			altForme?.isMega && altForme?.requiredMove &&
 			pokemon.baseMoves.includes(toID(altForme.requiredMove)) && !item.zMove) {
 			return altForme.name;
