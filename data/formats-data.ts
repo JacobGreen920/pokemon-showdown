@@ -1432,7 +1432,7 @@ export const FormatsData: import('../sim/dex-species').SpeciesFormatsDataTable =
 	ambipom: {
 		tier: "PU",
 		doublesTier: "(DUU)",
-		natDexTier: "6",
+		natDexTier: "5",
 	},
 	sunkern: {
 		tier: "LC",
@@ -3462,7 +3462,7 @@ export const FormatsData: import('../sim/dex-species').SpeciesFormatsDataTable =
 	cinccino: {
 		tier: "NU",
 		doublesTier: "(DUU)",
-		natDexTier: "5",
+		natDexTier: "6",
 	},
 	gothita: {
 		tier: "LC",
