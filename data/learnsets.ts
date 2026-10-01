@@ -7763,7 +7763,7 @@ export const Learnsets: import('../sim/dex-species').LearnsetDataTable = {
 			snarl: ["9M"],
 			snatch: ["7T", "6T", "5T", "4M", "3M"],
 			snore: ["8M", "7T", "7V", "6T", "5T", "4T", "3T"],
-			spikes: ["6M"], //new move
+			spikes: ["9M"], //new move
 			spite: ["9M", "7T", "6T", "5T", "4T"],
 			substitute: ["9M", "8M", "8V", "7M", "7V", "6M", "5M", "4M", "3T"],
 			sunnyday: ["9M", "8M", "7M", "7V", "6M", "5M", "4M", "3M"],
@@ -7870,7 +7870,7 @@ export const Learnsets: import('../sim/dex-species').LearnsetDataTable = {
 			snarl: ["9M", "8M", "7M"],
 			snatch: ["7T"],
 			snore: ["8M", "7T"],
-			spikes: ["6M"], //new move
+			spikes: ["9M"], //new move
 			spite: ["9M", "7T"],
 			substitute: ["9M", "8M", "8V", "7M"],
 			sunnyday: ["9M", "8M", "7M"],
